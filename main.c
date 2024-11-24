@@ -4,6 +4,7 @@
 #include "stm32f10x_usart.h" // UART/USART Library for SPL
 #include "stm32f10x_rcc.h"   // RCC (Reset and Clock Control) Library for SPL
 #include "stm32f10x_flash.h" // Keil::Device:StdPeriph Drivers:Flash
+#include "stm32f10x_exti.h"  // Keil::Device:StdPeriph Drivers:EXTI
 
 #include "i2c-lcd.h"
 #include "delay.h"
@@ -67,7 +68,8 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);		// DISPLAYING LCD
 static void MX_SPI1_Init(void); 	// SDCard comunication, RC522 doesn't need, because it's included by MFRC522_Init()
 static void MX_SPI1_DeInit(void);
-static void MX_USART3_UART_Init(void);	// DISPLAYING TERMINAL 
+static void MX_USART3_UART_Init(void);	// DISPLAYING TERMINAL
+static void EXTI_Config(void);
 void UART_SendString(USART_TypeDef *USARTx, char *str);
 /*******************************/
 
@@ -358,11 +360,12 @@ bool AddUIDToFile(uint8_t *UID)
     MX_FATFS_DeInit();
     MX_SPI1_DeInit();
 
-    UART_SendString(USART3, "UID added successfully\n\r");
+    UART_SendString(USART3, "UID added successfully22\n\r");
     return true;
 }
 /*******************************/
-
+volatile uint8_t button1Pressed = 0;
+volatile uint8_t button2Pressed = 0;
 int main(void)
 {
     /* System Initialization */
@@ -372,15 +375,15 @@ int main(void)
     MX_GPIO_Init();
 	MX_I2C1_Init();
     MX_USART3_UART_Init();
+	EXTI_Config();
+	
     Sys_DelayInit();
-    while (DWT_Delay_Init())
-    {
-    }
+    while (DWT_Delay_Init()){}
 
     GPIO_SetBits(GPIOA, GPIO_Pin_8);
-    Sys_DelayMs(100);
+    Delay_Ms(100);
     MFRC522_Init();
-    Sys_DelayMs(1000);
+    Delay_Ms(1000);
 
     uint8_t status, cardstr[MAX_LEN + 1];
     uint8_t card_data[17];
@@ -401,84 +404,52 @@ int main(void)
     UART_SendString(USART3, str1);
 
 	bool stateUpdated = false;
-		
-    while (1)
-    {
-        // 1. Detect card
-        status = MFRC522_Request(PICC_REQIDL, cardstr);
-        if (status != MI_OK)
-        {
-			if (!stateUpdated)
-			{
+
+	while (1) 
+	{
+		// 1. Detect card
+		status = MFRC522_Request(PICC_REQIDL, cardstr);
+		if (status != MI_OK) {
+			if (!stateUpdated) {
 				// Displaying Terminal
 				sprintf(str1, "Waiting for Card\n\r");
 				UART_SendString(USART3, str1);
 				// Displaying LCD
 				LCD_SetCursor(1, 0);
 				LCD_SendString("Waiting for Card");
-				Sys_DelayMs(100);
-				
+				Delay_Ms(100);
+
 				stateUpdated = true;
 			}
-				continue;
-        }
- 
-        // 2. Read UID
-        status = MFRC522_Anticoll(cardstr);
-        if (status == MI_OK)
-        {
-            memcpy(UID, cardstr, 5);
+			continue;
+		}
+
+		// 2. Read UID
+		status = MFRC522_Anticoll(cardstr);
+		if (status == MI_OK) {
+			memcpy(UID, cardstr, 5);
 			// Displaying Terminal
-            sprintf(str2, "UID: %02x %02x %02x %02x\n\r", UID[0], UID[1], UID[2], UID[3]);
-            UART_SendString(USART3, str2);
+			sprintf(str2, "UID: %02x %02x %02x %02x\n\r", UID[0], UID[1], UID[2], UID[3]);
+			UART_SendString(USART3, str2);
 
-            // 3. If Key1_Pin is pressed, erase this Card UID from csv
-            if (GPIO_ReadInputDataBit(Button1_GPIO_Port, Button1_Pin) == Bit_RESET)
-            {
-                // Wait for debounce
-                Sys_DelayMs(200); // Delay 200ms to debounce
+			// 3. Check UID in CSV
+			AutCard();
 
-                // Confirm the button is still pressed
-                if (GPIO_ReadInputDataBit(GPIOA, Button1_Pin) == Bit_RESET)
-                {
-                    UART_SendString(USART3, "Key1 Pressed, Removing UID\n\r");
-
-                    // Call the function to remove the UID from CSV
-                    if (RemoveUIDFromFile(UID))
-                    {
-                        UART_SendString(USART3, "UID removed successfully\n\r");
-                    }
-                    else
-                    {
-                        UART_SendString(USART3, "Failed to remove UID\n\r");
-                    }
-                }
-            }
-
-            // Confirm the button is still pressed
-            else if (GPIO_ReadInputDataBit(Button2_GPIO_Port, Button2_Pin) == Bit_RESET)
-            {
-                UART_SendString(USART3, "Key2_Pin Pressed, Adding UID\n\r");
-
-                // Call the function to add UID
-                if (AddUIDToFile(UID))
-                {
-                    UART_SendString(USART3, "UID added successfully\n\r");
-                }
-                else
-                {
-                    UART_SendString(USART3, "Failed to add UID\n\r");
-                }
-            }
-            else
-            {
-                // Check UID in CSV
-                AutCard();
-            }
-		
 			stateUpdated = false;
-        }
-    }
+		}
+		if (button1Pressed) 
+		{
+			button1Pressed = 0;  // Clear flag
+			Delay_Ms(10);
+		}
+
+		if (button2Pressed) 
+		{
+			button2Pressed = 0;  // Clear flag
+			Delay_Ms(10);
+		}
+	}
+
 }
 
 /**
@@ -552,7 +523,8 @@ static void MX_RCC_Init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
 
     /* Enable the clock for GPIO */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB
+						| RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
 }
 /**
  * @brief SPI1 Initialization Function
@@ -768,6 +740,73 @@ static void MX_GPIO_Init(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; // Input floating
     GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+static void EXTI_Config(void) 
+{
+    // Configure EXTI5 for PB5
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource5);
+    EXTI_InitTypeDef EXTI_InitStructure;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line5;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;  // Trigger on falling edge
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+	
+   // Configure EXTI8 for PB8
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource8);
+    EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;  // Trigger on falling edge
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+
+    // Enable NVIC for EXTI5 (handled by EXTI9_5 IRQ handler)
+    NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_SetPriority(SysTick_IRQn, 1);
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // Enable NVIC for EXTI8 (also handled by EXTI9_5 IRQ handler)
+    // No additional NVIC configuration needed as EXTI9_5 covers both EXTI5 and EXTI8
+}
+
+
+void EXTI9_5_IRQHandler(void) {
+    // Check if EXTI5 (PB5 - Button1) triggered the interrupt
+    if ((EXTI_GetITStatus(EXTI_Line5) != RESET) && (button1Pressed == 0)) 
+	{
+		button1Pressed = 1;
+	}
+	
+	if (button1Pressed == 1)
+	{
+        // PB5 action (Remove UID from file)
+        RemoveUIDFromFile(UID);
+		
+		// Clear the interrupt flag
+        EXTI_ClearITPendingBit(EXTI_Line5);
+	}
+
+
+    // Check if EXTI8 (PB8 - Button2) triggered the interrupt
+    if ((EXTI_GetITStatus(EXTI_Line8) != RESET) && (button2Pressed == 0)) 
+	{
+		button2Pressed = 1;
+	}
+	
+	if (button2Pressed == 1)
+	{
+        // PB8 action (Add UID to file) 
+        AddUIDToFile(UID);
+
+        // Clear the interrupt flag
+        EXTI_ClearITPendingBit(EXTI_Line8);
+	
+    }
 }
 
 /**

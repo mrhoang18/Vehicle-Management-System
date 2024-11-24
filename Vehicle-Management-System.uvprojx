@@ -544,6 +544,21 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>DS3231_AT24C32</GroupName>
+          <Files>
+            <File>
+              <FileName>DS3231_AT24C32.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\DS3231_AT24C32\DS3231_AT24C32.c</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231_AT24C32.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\DS3231_AT24C32\DS3231_AT24C32.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>::CMSIS</GroupName>
         </Group>
         <Group>
@@ -563,6 +578,12 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.0" condition="STM32F1xx CMSIS">
+        <package name="STM32F1xx_DFP" schemaVersion="1.7.2" url="https://www.keil.com/pack/" vendor="Keil" version="2.4.1"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="EXTI" Cvendor="Keil" Cversion="3.6.0" condition="STM32F1xx STDPERIPH">
         <package name="STM32F1xx_DFP" schemaVersion="1.7.2" url="https://www.keil.com/pack/" vendor="Keil" version="2.4.1"/>
         <targetInfos>
           <targetInfo name="Target 1"/>

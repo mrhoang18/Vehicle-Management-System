@@ -78,14 +78,14 @@ static uint8_t SD_ReadyWait(void)
   uint8_t res;
 
   /* 500ms 카운터 준비 */
-  Timer2 = 50;
-  SPI_RxByte();
-
-  do
-  {
-    /* 0xFF 값이 수신될 때 까지 SPI 통신 */
-    res = SPI_RxByte();
-  } while ((res != 0xFF) && Timer2);
+  Timer2 = 50;	
+  SPI_RxByte();											
+														
+  do													
+  {														
+    /* 0xFF 값이 수신될 때 까지 SPI 통신 */					
+    res = SPI_RxByte();									
+  } while ((res != 0xFF));			// Modify in 11/25/2024, origin is "while ((res != 0xFF) && Timer2);"		
 
   return res;
 }
@@ -152,13 +152,13 @@ static bool SD_RxDataBlock(BYTE *buff, UINT btr)
   uint8_t token;
 
   /* 100ms 타이머 */
-  //Timer1 = 10;
-	Sys_DelayMs(100);
-
-  /* 응답 대기 */
-  do
-  {
-    token = SPI_RxByte();
+  Timer1 = 10;		
+  // Sys_DelayMs(100);							
+												
+  /* 응답 대기 */									
+  do											
+  {												
+    token = SPI_RxByte();						
   } while ((token == 0xFF) && Timer1);
 
   /* 0xFE 이외 Token 수신 시 에러 처리 */

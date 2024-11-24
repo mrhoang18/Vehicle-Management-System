@@ -22,27 +22,27 @@ Dialog DLL:      TCM.DLL V1.14.6.0
  
 <h2>Project:</h2>
 C:\Users\yamch\Desktop\Vehicle-Management-System\Vehicle-Management-System\Vehicle-Management-System.uvprojx
-Project File Date:  09/25/2024
+Project File Date:  11/25/2024
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 1 (build 61)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
 compiling main.c...
-main.c(276): warning:  #177-D: variable "buffer" was declared but never referenced
+main.c(278): warning:  #177-D: variable "buffer" was declared but never referenced
       char buffer[128];
-main.c(386): warning:  #177-D: variable "card_data" was declared but never referenced
+main.c(389): warning:  #177-D: variable "card_data" was declared but never referenced
       uint8_t card_data[17];
-main.c(387): warning:  #177-D: variable "delay_val" was declared but never referenced
+main.c(390): warning:  #177-D: variable "delay_val" was declared but never referenced
       uint32_t delay_val = 1000; // ms
-main.c(388): warning:  #177-D: variable "result" was declared but never referenced
+main.c(391): warning:  #177-D: variable "result" was declared but never referenced
       uint16_t result = 0;
-main.c(391): warning:  #177-D: variable "Mx1" was declared but never referenced
+main.c(394): warning:  #177-D: variable "Mx1" was declared but never referenced
       uint8_t Mx1[7][5] = {{0x12, 0x45, 0xF2, 0xA8}, {0xB2, 0x6C, 0x39, 0x83}, {0x55, 0xE5, 0xDA, 0x18}, {0x1F, 0x09, 0xCA, 0x75}, {0x99, 0xA2, 0x50, 0xEC}, {0x2C, 0x88, 0x7F, 0x3D}};
-main.c(393): warning:  #177-D: variable "SectorKey" was declared but never referenced
+main.c(396): warning:  #177-D: variable "SectorKey" was declared but never referenced
       uint8_t SectorKey[7];
 main.c: 6 warnings, 0 errors
 linking...
-Program Size: Code=16588 RO-data=1764 RW-data=92 ZI-data=10492  
+Program Size: Code=16832 RO-data=1764 RW-data=92 ZI-data=10492  
 ".\Objects\project_1.axf" - 0 Error(s), 6 Warning(s).
 
 <h2>Software Packages used:</h2>
@@ -55,18 +55,19 @@ Package Vendor: ARM
 
 Package Vendor: Keil
                 https://www.keil.com/pack/Keil.STM32F1xx_DFP.2.4.1.pack
-                Keil::Device:StdPeriph Drivers:USART:3.6.0
+                Keil::Device:StdPeriph Drivers:RCC:3.6.0
                 STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
-   * Component: USART Version: 3.6.0
+   * Component: RCC Version: 3.6.0
+   * Component: GPIO Version: 3.6.0
+   * Component: SDIO Version: 3.6.0
    * Component: Startup Version: 1.0.0
    * Component: Framework Version: 3.6.0
+   * Component: EXTI Version: 3.6.0
    * Component: Flash Version: 3.6.0
-   * Component: SPI Version: 3.6.0
-   * Component: GPIO Version: 3.6.0
-   * Component: TIM Version: 3.6.0
    * Component: I2C Version: 3.6.0
-   * Component: RCC Version: 3.6.0
-   * Component: SDIO Version: 3.6.0
+   * Component: TIM Version: 3.6.0
+   * Component: USART Version: 3.6.0
+   * Component: SPI Version: 3.6.0
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\yamch\Desktop\Vehicle-Management-System\Vehicle-Management-System\RTE
@@ -79,50 +80,54 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:4.3.0
 
-   * Component: Keil::Device:StdPeriph Drivers:USART:3.6.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_usart.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_usart.c
-
-   * Component: Keil::Device:Startup:1.0.0
-      Source file:   Device\Source\ARM\STM32F1xx_OPT.s
-      Source file:   Device\Source\system_stm32f10x.c
-      Include file:  RTE_Driver\Config\RTE_Device.h
-      Source file:   Device\Source\ARM\startup_stm32f10x_md.s
-
-   * Component: Keil::Device:StdPeriph Drivers:Framework:3.6.0
-      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_conf.h
-      Include file:  Device\StdPeriph_Driver\inc\misc.h
-      Source file:   Device\StdPeriph_Driver\src\misc.c
-      Include file:  Device\StdPeriph_Driver\templates\stm32f10x_it.h
-      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_it.c
-
-   * Component: Keil::Device:StdPeriph Drivers:Flash:3.6.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_flash.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_flash.c
-
-   * Component: Keil::Device:StdPeriph Drivers:SPI:3.6.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_spi.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_spi.c
+   * Component: Keil::Device:StdPeriph Drivers:RCC:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_rcc.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_rcc.c
 
    * Component: Keil::Device:StdPeriph Drivers:GPIO:3.6.0
       Include file:  Device\StdPeriph_Driver\inc\stm32f10x_gpio.h
       Source file:   Device\StdPeriph_Driver\src\stm32f10x_gpio.c
 
-   * Component: Keil::Device:StdPeriph Drivers:TIM:3.6.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_tim.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_tim.c
+   * Component: Keil::Device:StdPeriph Drivers:SDIO:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_sdio.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_sdio.c
+
+   * Component: Keil::Device:Startup:1.0.0
+      Source file:   Device\Source\ARM\STM32F1xx_OPT.s
+      Source file:   Device\Source\ARM\startup_stm32f10x_md.s
+      Source file:   Device\Source\system_stm32f10x.c
+      Include file:  RTE_Driver\Config\RTE_Device.h
+
+   * Component: Keil::Device:StdPeriph Drivers:Framework:3.6.0
+      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_conf.h
+      Include file:  Device\StdPeriph_Driver\inc\misc.h
+      Include file:  Device\StdPeriph_Driver\templates\stm32f10x_it.h
+      Source file:   Device\StdPeriph_Driver\src\misc.c
+      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_it.c
+
+   * Component: Keil::Device:StdPeriph Drivers:EXTI:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_exti.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_exti.c
+
+   * Component: Keil::Device:StdPeriph Drivers:Flash:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_flash.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_flash.c
 
    * Component: Keil::Device:StdPeriph Drivers:I2C:3.6.0
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_i2c.c
       Include file:  Device\StdPeriph_Driver\inc\stm32f10x_i2c.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_i2c.c
 
-   * Component: Keil::Device:StdPeriph Drivers:RCC:3.6.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_rcc.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_rcc.c
+   * Component: Keil::Device:StdPeriph Drivers:TIM:3.6.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_tim.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_tim.h
 
-   * Component: Keil::Device:StdPeriph Drivers:SDIO:3.6.0
-      Source file:   Device\StdPeriph_Driver\src\stm32f10x_sdio.c
-      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_sdio.h
+   * Component: Keil::Device:StdPeriph Drivers:USART:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_usart.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_usart.c
+
+   * Component: Keil::Device:StdPeriph Drivers:SPI:3.6.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_spi.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_spi.c
 Build Time Elapsed:  00:00:01
 </pre>
 </body>
