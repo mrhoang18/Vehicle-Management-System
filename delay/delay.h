@@ -61,6 +61,10 @@ extern volatile uint8_t Timer1, Timer2;
 
 void SDTimer_Handler(void);
 
+void Delay_Us(uint32_t Time);
+void Delay_Ms(uint32_t Time);
+void TIM2_Config(void);
+
 #ifdef __cplusplus
 }
 #endif

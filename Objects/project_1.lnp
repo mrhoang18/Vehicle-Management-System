@@ -2,7 +2,7 @@
 ".\objects\main.o"
 ".\objects\delay.o"
 ".\objects\rc522.o"
-".\objects\lcd.o"
+".\objects\i2c-lcd.o"
 ".\objects\fatfs.o"
 ".\objects\fatfs_sd.o"
 ".\objects\user_diskio.o"

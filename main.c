@@ -5,7 +5,7 @@
 #include "stm32f10x_rcc.h"   // RCC (Reset and Clock Control) Library for SPL
 #include "stm32f10x_flash.h" // Keil::Device:StdPeriph Drivers:Flash
 
-#include "lcd.h"
+#include "i2c-lcd.h"
 #include "delay.h"
 #include "rc522.h"
 #include "string.h"
@@ -19,9 +19,9 @@
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_Pin_4
 #define LED2_GPIO_Port GPIOB
-#define Button2_Pin GPIO_Pin_5 // This button use for adding new user SD Card
+#define Button2_Pin GPIO_Pin_8 // This button use for adding new user SD Card
 #define Button2_GPIO_Port GPIOB
-#define Button1_Pin GPIO_Pin_6 // This button use for earasing current user SD Card
+#define Button1_Pin GPIO_Pin_5 // This button use for earasing current user SD Card
 #define Button1_GPIO_Port GPIOB
 
 /* Macro pins of items for SDCard */
@@ -64,9 +64,10 @@ UINT bw;
 void SystemClock_Config(void);
 static void MX_RCC_Init(void);
 static void MX_GPIO_Init(void);
-static void MX_SPI1_Init(void); // SDCard comunication, RC522 doesn't need, because it's included by MFRC522_Init()
+static void MX_I2C1_Init(void);		// DISPLAYING LCD
+static void MX_SPI1_Init(void); 	// SDCard comunication, RC522 doesn't need, because it's included by MFRC522_Init()
 static void MX_SPI1_DeInit(void);
-static void MX_USART3_UART_Init(void);
+static void MX_USART3_UART_Init(void);	// DISPLAYING TERMINAL 
 void UART_SendString(USART_TypeDef *USARTx, char *str);
 /*******************************/
 
@@ -367,7 +368,9 @@ int main(void)
     /* System Initialization */
     SystemClock_Config();
     MX_RCC_Init();
+	TIM2_Config();
     MX_GPIO_Init();
+	MX_I2C1_Init();
     MX_USART3_UART_Init();
     Sys_DelayInit();
     while (DWT_Delay_Init())
@@ -389,26 +392,43 @@ int main(void)
 
     uint8_t SectorKey[7];
 
+	LCD_Init();
+	LCD_ClearDisplay();
+	LCD_SetCursor(0, 0);
+	LCD_SendString("Ready to operate");
+
     sprintf(str1, "Ready to operate\n\r");
     UART_SendString(USART3, str1);
 
+	bool stateUpdated = false;
+		
     while (1)
     {
         // 1. Detect card
         status = MFRC522_Request(PICC_REQIDL, cardstr);
         if (status != MI_OK)
         {
-            sprintf(str1, "Waiting for Card\n\r");
-            UART_SendString(USART3, str1);
-            Sys_DelayMs(1000);
-            continue;
+			if (!stateUpdated)
+			{
+				// Displaying Terminal
+				sprintf(str1, "Waiting for Card\n\r");
+				UART_SendString(USART3, str1);
+				// Displaying LCD
+				LCD_SetCursor(1, 0);
+				LCD_SendString("Waiting for Card");
+				Sys_DelayMs(100);
+				
+				stateUpdated = true;
+			}
+				continue;
         }
-
+ 
         // 2. Read UID
         status = MFRC522_Anticoll(cardstr);
         if (status == MI_OK)
         {
             memcpy(UID, cardstr, 5);
+			// Displaying Terminal
             sprintf(str2, "UID: %02x %02x %02x %02x\n\r", UID[0], UID[1], UID[2], UID[3]);
             UART_SendString(USART3, str2);
 
@@ -455,6 +475,8 @@ int main(void)
                 // Check UID in CSV
                 AutCard();
             }
+		
+			stateUpdated = false;
         }
     }
 }
@@ -525,6 +547,9 @@ static void MX_RCC_Init(void)
 
     /* Enable the clock for USART3 */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+	
+	/* Enable the clock for I2C1 */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
 
     /* Enable the clock for GPIO */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
@@ -602,6 +627,57 @@ static void MX_SPI1_DeInit(void)
 }
 
 /**
+ * @brief I2C1 Initialization Function
+ * @param None
+ * @retval None
+ */
+void MX_I2C1_Init()
+{
+    I2C_InitTypeDef I2C_InitStructure;
+
+	I2C_DeInit(I2C1);
+	I2C_Cmd(I2C1, DISABLE);
+	
+    I2C_InitStructure.I2C_ClockSpeed = 400000; // Fast mode
+    I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
+    I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
+    I2C_InitStructure.I2C_OwnAddress1 = 0x00; // Address Master
+    I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
+    I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+
+    I2C_Init(I2C1, &I2C_InitStructure);
+    I2C_Cmd(I2C1, ENABLE);
+	
+	GPIO_InitTypeDef GPIO_InitStruct;
+    
+    // 1. Configure SCL and SDA as GPIO Output Push-Pull
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    // 2. Generate 8 clock pulses on SCL to release SDA
+    for (volatile int i = 0; i < 8; i++) {
+        // Set SCL high
+        GPIO_SetBits(GPIOB, GPIO_Pin_6);
+        Delay_Us(1000);
+        
+        // Set SCL low
+        GPIO_ResetBits(GPIOB, GPIO_Pin_6);
+        Delay_Us(1000);
+    }
+    
+    // 3. Set both SCL and SDA to high level
+    GPIO_SetBits(GPIOB, GPIO_Pin_6 | GPIO_Pin_7);
+	Delay_Us(1000);
+	
+    // 4. Reconfigure pins for I2C mode (Alternate Function Open-Drain)
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_OD;
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+/**
  * @brief USART3 Initialization Function
  * @param None
  * @retval None
@@ -624,6 +700,7 @@ static void MX_USART3_UART_Init(void)
     /* Enable USART3 */
     USART_Cmd(USART3, ENABLE);
 }
+
 
 /**
  * @brief GPIO Initialization Function

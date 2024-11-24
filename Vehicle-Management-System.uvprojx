@@ -457,14 +457,14 @@
           <GroupName>lcd</GroupName>
           <Files>
             <File>
-              <FileName>lcd.c</FileName>
+              <FileName>i2c-lcd.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\lcd\lcd.c</FilePath>
+              <FilePath>.\lcd\i2c-lcd.c</FilePath>
             </File>
             <File>
-              <FileName>lcd.h</FileName>
+              <FileName>i2c-lcd.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\lcd\lcd.h</FilePath>
+              <FilePath>.\lcd\i2c-lcd.h</FilePath>
             </File>
           </Files>
         </Group>

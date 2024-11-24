@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'project_1' 
+ * Project: 'Vehicle-Management-System' 
  * Target:  'Target 1' 
  */
 
